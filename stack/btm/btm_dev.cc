@@ -149,12 +149,6 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
   return true;
 }
 
-void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
-  memset(p_dev_rec->link_key, 0, LINK_KEY_LEN);
-  memset(&p_dev_rec->ble.keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
-  list_remove(btm_cb.sec_dev_rec, p_dev_rec);
-}
-
 /** Free resources associated with the device associated with |bd_addr| address.
  *
  * *** WARNING ***
@@ -176,10 +170,7 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec != NULL) {
     RawAddress bda = p_dev_rec->bd_addr;
-
-    /* Clear out any saved BLE keys */
-    btm_sec_clear_ble_keys(p_dev_rec);
-    wipe_secrets_and_remove(p_dev_rec);
+    btm_sec_free_dev(p_dev_rec);
     /* Tell controller to get rid of the link key, if it has one stored */
     BTM_DeleteStoredLinkKey(&bda, NULL);
   }
